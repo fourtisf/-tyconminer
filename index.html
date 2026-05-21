@@ -11,131 +11,145 @@
     --sky:#87CEEB; --light:#FFF8DC;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{
-    font-family:'Nunito','Segoe UI',system-ui,sans-serif;
-    background:linear-gradient(#87CEEB 0%, #5a9bd4 18%, #8B4513 40%, #3E2723 100%);
-    color:#fff;min-height:100vh;display:flex;justify-content:center;
-    user-select:none;overflow-x:hidden;
-  }
-  #app{width:100%;max-width:480px;min-height:100vh;display:flex;flex-direction:column;
-    position:relative;background:rgba(0,0,0,.06)}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:'Nunito','Segoe UI',system-ui,sans-serif;color:#fff;user-select:none;
+    background:#87CEEB;display:flex;justify-content:center}
+  #app{width:100%;max-width:520px;height:100dvh;position:relative;overflow:hidden}
+
+  /* 3D canvas fills everything */
+  #scene{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 
   /* TOP HUD */
-  #hud{display:flex;align-items:center;gap:8px;padding:10px 12px;
-    background:linear-gradient(#3E2723,#5d3a1a);box-shadow:0 2px 8px rgba(0,0,0,.4);z-index:5}
-  .cur{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.35);
-    padding:5px 10px;border-radius:20px;font-weight:800;font-size:14px;border:2px solid var(--dark-gold)}
+  #hud{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:8px;
+    padding:10px 12px;z-index:5;pointer-events:none}
+  .cur{display:flex;align-items:center;gap:5px;background:rgba(40,20,8,.78);
+    padding:6px 12px;border-radius:20px;font-weight:800;font-size:15px;border:2px solid var(--dark-gold);
+    box-shadow:0 2px 6px rgba(0,0,0,.4)}
   .cur.gem{border-color:var(--blue)}
-  .cur .ic{font-size:16px}
   #title{flex:1;text-align:center;font-weight:900;letter-spacing:.5px;
-    color:var(--gold);text-shadow:0 2px 0 var(--dark-gold);font-size:15px}
+    color:var(--gold);text-shadow:0 2px 4px rgba(0,0,0,.6);font-size:16px}
 
   /* ORDER BAR */
-  #orderbar{padding:6px 12px;background:rgba(255,152,0,.18);font-size:12px;
-    display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(0,0,0,.2)}
-  #orderbar .bar{flex:1;height:8px;background:rgba(0,0,0,.3);border-radius:5px;overflow:hidden}
+  #orderbar{position:absolute;top:54px;left:12px;right:12px;z-index:5;
+    background:rgba(40,20,8,.7);border:2px solid var(--orange);border-radius:14px;
+    padding:6px 12px;font-size:12px;display:flex;align-items:center;gap:8px;pointer-events:none}
+  #orderbar .bar{flex:1;height:8px;background:rgba(0,0,0,.4);border-radius:5px;overflow:hidden}
   #orderbar .fill{height:100%;width:0;background:var(--orange);transition:width .3s}
 
-  /* FACTORY VIEW */
-  #factory{flex:1;padding:10px;overflow-y:auto}
-  .station{
-    background:linear-gradient(145deg,#6b4a2a,#4a3018);
-    border:3px solid var(--dark-gold);border-radius:16px;padding:12px;margin-bottom:12px;
-    position:relative;box-shadow:0 4px 0 rgba(0,0,0,.3)}
-  .station.locked{opacity:.45;filter:grayscale(.7)}
-  .st-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-  .st-emoji{font-size:34px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5));transition:transform .1s}
-  .st-emoji.pulse{transform:scale(1.25)}
-  .st-info{flex:1}
-  .st-name{font-weight:900;font-size:16px}
-  .st-lvl{font-size:11px;color:var(--gold)}
-  .st-store{font-size:12px;opacity:.9;margin-top:2px}
-  .storebar{height:7px;background:rgba(0,0,0,.35);border-radius:5px;overflow:hidden;margin-top:4px}
+  /* SELECTED STATION action sheet */
+  #sheet{position:absolute;left:10px;right:10px;bottom:72px;z-index:6;
+    background:linear-gradient(145deg,#6b4a2a,#3a2410);border:3px solid var(--dark-gold);
+    border-radius:18px;padding:12px;box-shadow:0 6px 16px rgba(0,0,0,.5);
+    transform:translateY(160%);transition:transform .25s ease;}
+  #sheet.show{transform:translateY(0)}
+  #sheet .top{display:flex;align-items:center;gap:10px}
+  #sheet .emoji{font-size:30px}
+  #sheet .nm{font-weight:900;font-size:16px}
+  #sheet .sub{font-size:11px;color:var(--gold)}
+  #sheet .store{font-size:11px;opacity:.85}
+  .storebar{height:7px;background:rgba(0,0,0,.4);border-radius:5px;overflow:hidden;margin-top:4px}
   .storefill{height:100%;width:0;background:var(--green);transition:width .2s}
   .storefill.full{background:var(--red)}
-  .st-actions{display:flex;gap:8px;margin-top:10px}
-  .btn{flex:1;border:none;border-radius:12px;padding:9px;font-weight:800;font-size:13px;
-    cursor:pointer;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.3);transition:transform .05s}
-  .btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.3)}
-  .btn.buy{background:var(--green)}
-  .btn.buy:disabled{background:#5a5a5a;box-shadow:0 3px 0 rgba(0,0,0,.2);cursor:not-allowed;opacity:.7}
-  .btn.tap{background:var(--orange)}
-  .btn.mgr{background:var(--blue);color:#062a3a}
-  .btn.mgr.hired{background:var(--dark-gold);color:#fff}
-  .chain-arrow{text-align:center;font-size:20px;color:var(--gold);margin:-6px 0 6px}
+  #sheet .acts{display:flex;gap:8px;margin-top:10px}
+  .btn{flex:1;border:none;border-radius:12px;padding:11px;font-weight:800;font-size:13px;
+    cursor:pointer;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.35);transition:transform .05s}
+  .btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+  .btn.buy{background:var(--green)} .btn.tap{background:var(--orange)}
+  .btn.mgr{background:var(--blue);color:#062a3a} .btn.mgr.hired{background:var(--dark-gold);color:#fff}
+  .btn:disabled{background:#5a5a5a;opacity:.6;cursor:not-allowed;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+  #sheetClose{position:absolute;top:8px;right:12px;font-size:18px;color:#e9c98a;
+    background:none;border:none;cursor:pointer;pointer-events:auto}
 
-  /* floating numbers */
-  .float{position:absolute;font-weight:900;font-size:15px;color:var(--gold);
-    pointer-events:none;animation:floatup 1s ease-out forwards;text-shadow:0 1px 2px #000;z-index:9}
-  @keyframes floatup{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-40px)}}
+  #hint{position:absolute;bottom:78px;left:0;right:0;text-align:center;font-size:12px;
+    color:rgba(255,255,255,.9);text-shadow:0 1px 3px #000;z-index:4;pointer-events:none}
 
   /* BOTTOM NAV */
-  #nav{display:flex;background:linear-gradient(#3E2723,#2a1810);border-top:3px solid var(--dark-gold)}
+  #nav{position:absolute;bottom:0;left:0;right:0;display:flex;
+    background:linear-gradient(#3E2723,#2a1810);border-top:3px solid var(--dark-gold);z-index:7}
   .navbtn{flex:1;background:none;border:none;color:#caa;padding:8px 2px 10px;font-size:10px;
     font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
   .navbtn .ic{font-size:20px}
   .navbtn.active{color:var(--gold)}
 
-  /* MODAL panels */
-  .panel{display:none;flex:1;padding:14px;overflow-y:auto}
+  /* OVERLAY PANELS */
+  .panel{position:absolute;inset:0 0 60px 0;background:linear-gradient(#5a3a1a,#2a1810);
+    z-index:8;padding:54px 14px 14px;overflow-y:auto;display:none}
   .panel.show{display:block}
+  .panel h2{color:var(--gold);text-shadow:0 2px 0 var(--dark-gold);margin-bottom:12px;font-size:20px;text-align:center}
   .card{background:var(--light);color:var(--dark-brown);border-radius:14px;padding:12px;
     margin-bottom:10px;border:2px solid var(--dark-gold);box-shadow:0 3px 0 rgba(0,0,0,.2)}
   .card h3{font-size:15px;margin-bottom:3px}
   .card p{font-size:12px;color:#5a4a3a;margin-bottom:8px}
   .card .row{display:flex;align-items:center;gap:8px}
-  .badge{background:var(--orange);color:#fff;font-size:10px;font-weight:800;padding:2px 8px;
-    border-radius:10px;margin-left:auto}
+  .badge{background:var(--orange);color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;margin-left:auto}
   .badge.best{background:var(--green)}
-  .panel h2{color:var(--gold);text-shadow:0 2px 0 var(--dark-gold);margin-bottom:12px;font-size:20px;text-align:center}
-
-  /* prestige */
-  #prestige .glow{text-align:center;font-size:60px;margin:10px}
   .stat{display:flex;justify-content:space-between;background:rgba(0,0,0,.25);
-    padding:8px 12px;border-radius:10px;margin-bottom:6px;font-size:13px;font-weight:700}
+    padding:9px 12px;border-radius:10px;margin-bottom:6px;font-size:13px;font-weight:700}
+  #prestige .glow{text-align:center;font-size:60px;margin:6px}
 
-  /* toast / offline modal */
-  #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  #toast{position:absolute;bottom:140px;left:50%;transform:translateX(-50%);
     background:var(--dark-brown);border:2px solid var(--gold);padding:10px 18px;border-radius:14px;
-    font-weight:800;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:20;text-align:center}
+    font-weight:800;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:20;text-align:center;max-width:90%}
   #toast.show{opacity:1}
-  #overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;
+  #overlay{position:absolute;inset:0;background:rgba(0,0,0,.72);display:none;
     align-items:center;justify-content:center;z-index:30;padding:24px}
   #overlay.show{display:flex}
   #offlineBox{background:var(--light);color:var(--dark-brown);border-radius:18px;padding:22px;
     text-align:center;max-width:320px;border:3px solid var(--gold)}
   #offlineBox h2{color:var(--dark-gold);margin-bottom:8px}
   #offlineBox .amt{font-size:26px;font-weight:900;color:var(--green);margin:10px 0}
-  #offlineBox button{background:var(--green);color:#fff;border:none;padding:12px 28px;
-    border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 0 #2e7d32}
+  #offlineBox button{background:var(--green);color:#fff;border:none;padding:12px 28px;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 0 #2e7d32}
+
+  #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:#87CEEB;z-index:50;flex-direction:column;gap:14px;color:#3E2723;font-weight:800}
+  .spin{width:46px;height:46px;border:5px solid rgba(62,39,35,.25);border-top-color:#3E2723;
+    border-radius:50%;animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* floating numbers */
+  .float{position:absolute;font-weight:900;font-size:16px;color:var(--gold);
+    pointer-events:none;text-shadow:0 1px 3px #000;z-index:9;
+    animation:fl 1s ease-out forwards}
+  @keyframes fl{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-50px)}}
 </style>
 </head>
 <body>
 <div id="app">
+  <canvas id="scene"></canvas>
+
   <div id="hud">
-    <div class="cur" id="cashHud"><span class="ic">💰</span><span id="cash">0</span></div>
+    <div class="cur"><span>💰</span><span id="cash">0</span></div>
     <div id="title">GOLD MINE TYCOON</div>
-    <div class="cur gem" id="gemHud"><span class="ic">💎</span><span id="gems">0</span></div>
+    <div class="cur gem"><span>💎</span><span id="gems">0</span></div>
   </div>
 
   <div id="orderbar">
-    <span>📦 Order:</span><span id="orderText">—</span>
+    <span>📦</span><span id="orderText">—</span>
     <div class="bar"><div class="fill" id="orderFill"></div></div>
   </div>
 
-  <!-- FACTORY -->
-  <div id="factory" class="panel show"></div>
+  <div id="hint">Ketuk stasiun untuk kelola · seret untuk geser kamera</div>
 
-  <!-- MANAGER -->
-  <div id="manager" class="panel"><h2>👷 Manager</h2><div id="mgrList"></div></div>
-
-  <!-- ORDERS -->
-  <div id="orders" class="panel"><h2>📦 Reputasi & Order</h2>
-    <div class="card"><h3>Cara kerja</h3><p>Setiap emas batangan yang dikirim (Shipping) menambah Cash & sedikit Reputasi. Reputasi membuka layer tambang baru.</p></div>
-    <div id="repInfo"></div>
+  <!-- selected station sheet -->
+  <div id="sheet">
+    <button id="sheetClose" onclick="closeSheet()">✕</button>
+    <div class="top">
+      <div class="emoji" id="shEmoji">⛏️</div>
+      <div style="flex:1">
+        <div class="nm" id="shName">—</div>
+        <div class="sub" id="shSub">—</div>
+        <div class="store" id="shStore">—</div>
+        <div class="storebar"><div class="storefill" id="shFill"></div></div>
+      </div>
+    </div>
+    <div class="acts" id="shActs"></div>
   </div>
 
-  <!-- PRESTIGE -->
+  <!-- panels -->
+  <div id="manager" class="panel"><h2>👷 Manager</h2><div id="mgrList"></div></div>
+  <div id="orders" class="panel"><h2>📦 Reputasi & Order</h2>
+    <div class="card"><h3>Cara kerja</h3><p>Tiap emas batangan yang dikirim truk menambah Cash & Reputasi. Reputasi membuka kedalaman tambang baru.</p></div>
+    <div id="repInfo"></div></div>
   <div id="prestige" class="panel"><h2>✨ Prestige</h2>
     <div class="glow">⛏️✨</div>
     <div class="stat"><span>Total Cash earned</span><span id="pTotal">0</span></div>
@@ -144,23 +158,17 @@
     <div class="stat"><span>Essence didapat</span><span id="pEssence">0</span></div>
     <div class="stat"><span>Multiplier baru</span><span id="pMultNew">x1.00</span></div>
     <button class="btn buy" style="margin-top:14px" onclick="doPrestige()">RESET & PRESTIGE</button>
-    <p style="font-size:11px;text-align:center;margin-top:8px;opacity:.8">⚠ Semua stasiun & cash reset. Essence permanen menambah multiplier produksi.</p>
-  </div>
-
-  <!-- SHOP -->
+    <p style="font-size:11px;text-align:center;margin-top:8px;opacity:.8">⚠ Semua stasiun & cash reset. Essence permanen menambah multiplier.</p></div>
   <div id="shop" class="panel"><h2>🛒 Shop</h2>
-    <div class="card" style="background:linear-gradient(135deg,#FFD700,#FF9800)">
-      <div class="row"><div><h3 style="color:#3E2723">🎁 Starter Pack</h3><p style="color:#5a3a1a">500 💎 + boost x2 (1 jam)</p></div>
-      <button class="btn buy" style="flex:0 0 auto;padding:9px 16px" onclick="buyGems(500,'starter')">$1.99</button></div>
-    </div>
+    <div class="card" style="background:linear-gradient(135deg,#FFD700,#FF9800)"><div class="row">
+      <div><h3 style="color:#3E2723">🎁 Starter Pack</h3><p style="color:#5a3a1a">500 💎</p></div>
+      <button class="btn buy" style="flex:0 0 auto;padding:9px 16px" onclick="buyGems(500,'starter')">$1.99</button></div></div>
     <div class="card"><div class="row"><div><h3>💎 100 Gems</h3></div><button class="btn buy" style="flex:0 0 auto;padding:9px 16px" onclick="buyGems(100)">$0.99</button></div></div>
     <div class="card"><div class="row"><div><h3>💎 550 Gems</h3><span class="badge">+10%</span></div><button class="btn buy" style="flex:0 0 auto;padding:9px 16px" onclick="buyGems(550)">$4.99</button></div></div>
     <div class="card"><div class="row"><div><h3>💎 1200 Gems</h3><span class="badge best">BEST VALUE</span></div><button class="btn buy" style="flex:0 0 auto;padding:9px 16px" onclick="buyGems(1200)">$9.99</button></div></div>
-    <div class="card"><div class="row"><div><h3>📺 Tonton Iklan</h3><p>Dapat 25 💎 gratis</p></div><button class="btn mgr" style="flex:0 0 auto;padding:9px 16px" onclick="watchAd()">FREE</button></div></div>
-    <p style="font-size:11px;text-align:center;opacity:.7">Demo web — pembelian gratis untuk testing.</p>
-  </div>
+    <div class="card"><div class="row"><div><h3>📺 Tonton Iklan</h3><p>+25 💎 gratis</p></div><button class="btn mgr" style="flex:0 0 auto;padding:9px 16px" onclick="watchAd()">FREE</button></div></div>
+    <p style="font-size:11px;text-align:center;opacity:.7">Demo web — pembelian gratis untuk testing.</p></div>
 
-  <!-- NAV -->
   <div id="nav">
     <button class="navbtn active" data-p="factory"><span class="ic">🏭</span>Factory</button>
     <button class="navbtn" data-p="manager"><span class="ic">👷</span>Manager</button>
@@ -168,310 +176,446 @@
     <button class="navbtn" data-p="prestige"><span class="ic">✨</span>Prestige</button>
     <button class="navbtn" data-p="shop"><span class="ic">🛒</span>Shop</button>
   </div>
+
+  <div id="toast"></div>
+  <div id="overlay"><div id="offlineBox">
+    <h2>⛏️ Selamat datang kembali!</h2><p>Tambangmu tetap bekerja.</p>
+    <div class="amt" id="offlineAmt">+0</div>
+    <button onclick="closeOffline()">KUMPULKAN</button></div></div>
+
+  <div id="loading"><div class="spin"></div><div>Memuat tambang 3D…</div></div>
 </div>
 
-<div id="toast"></div>
-<div id="overlay"><div id="offlineBox">
-  <h2>⛏️ Selamat datang kembali!</h2>
-  <p>Tambangmu tetap bekerja selama kamu pergi.</p>
-  <div class="amt" id="offlineAmt">+0</div>
-  <button onclick="closeOffline()">KUMPULKAN</button>
-</div></div>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
+}}
+</script>
 
-<script>
-"use strict";
-// ===== Config: production chain Mine -> Crusher -> Smelter -> Shipping =====
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ================= GAME CONFIG =================
 const STATIONS = [
-  {id:"mine",    name:"Tambang Emas", emoji:"⛏️",  kind:"mine",     cycle:1.4, out:1, cap:30,  cost:0,    upCost:60,   cashPer:0},
-  {id:"crusher", name:"Crusher",      emoji:"🪨",  kind:"crusher",  cycle:1.8, out:1, cap:25,  cost:250,  upCost:200,  cashPer:0},
-  {id:"smelter", name:"Smelter",      emoji:"🔥",  kind:"smelter",  cycle:2.4, out:1, cap:20,  cost:1500, upCost:900,  cashPer:0},
-  {id:"shipping",name:"Pengiriman",   emoji:"🚚",  kind:"shipping", cycle:2.0, out:1, cap:15,  cost:8000, upCost:3500, cashPer:14},
+  {id:"mine",    name:"Tambang Emas", emoji:"⛏️", kind:"mine",     cycle:1.4, out:1, cap:30, cost:0,    upCost:60,   cashPer:0,  pos:[-6,0,-4]},
+  {id:"crusher", name:"Crusher",      emoji:"🪨", kind:"crusher",  cycle:1.8, out:1, cap:25, cost:250,  upCost:200,  cashPer:0,  pos:[-1.5,0,-1]},
+  {id:"smelter", name:"Smelter",      emoji:"🔥", kind:"smelter",  cycle:2.4, out:1, cap:20, cost:1500, upCost:900,  cashPer:0,  pos:[2.5,0,2]},
+  {id:"shipping",name:"Pengiriman",   emoji:"🚚", kind:"shipping", cycle:2.0, out:1, cap:15, cost:8000, upCost:3500, cashPer:14, pos:[6.5,0,5]},
 ];
-const ORDER_KINDS = ["mine","crusher","smelter","shipping"];
-const MANAGERS = [
-  {id:"budi", name:"Pak Budi",  desc:"Veteran penambang. Otomatiskan Tambang.",     target:"mine",    cost:300},
-  {id:"joko", name:"Pak Joko",  desc:"Ahli crusher. Otomatiskan Crusher.",          target:"crusher", cost:2000},
-  {id:"sari", name:"Bu Sari",   desc:"Master peleburan. Otomatiskan Smelter.",      target:"smelter", cost:9000},
-  {id:"agus", name:"Pak Agus",  desc:"Manajer logistik. Otomatiskan Pengiriman.",   target:"shipping",cost:40000},
+const ORDER_KINDS=["mine","crusher","smelter","shipping"];
+const MANAGERS=[
+  {id:"budi",name:"Pak Budi",desc:"Veteran penambang. Otomatiskan Tambang.",target:"mine",cost:300},
+  {id:"joko",name:"Pak Joko",desc:"Ahli crusher. Otomatiskan Crusher.",target:"crusher",cost:2000},
+  {id:"sari",name:"Bu Sari",desc:"Master peleburan. Otomatiskan Smelter.",target:"smelter",cost:9000},
+  {id:"agus",name:"Pak Agus",desc:"Logistik. Otomatiskan Pengiriman.",target:"shipping",cost:40000},
 ];
-const COST_GROWTH=1.16, OUT_GROWTH=1.12, MAX_OFFLINE=8*3600, OFFLINE_EFF=0.5;
-const SAVE_KEY="gmt_save_v1";
+const COST_GROWTH=1.16,OUT_GROWTH=1.12,MAX_OFFLINE=8*3600,OFFLINE_EFF=0.5,SAVE_KEY="gmt_save_v2";
 
-// ===== State =====
-let S = newState();
-function newState(){
-  const st={};
-  STATIONS.forEach(d=>st[d.id]={level:d.id==="mine"?1:0, stored:0, prog:0});
-  return {cash:50, gems:0, reputation:0, essence:0, prestige:0, totalEarned:0,
-    stations:st, managers:[], unlockedLayer:1, savedAt:Date.now(),
-    order:null};
-}
+// ================= STATE =================
+let S=newState();
+function newState(){const st={};STATIONS.forEach(d=>st[d.id]={level:d.id==="mine"?1:0,stored:0,prog:0});
+  return{cash:50,gems:0,reputation:0,essence:0,prestige:0,totalEarned:0,stations:st,managers:[],savedAt:Date.now(),order:null};}
 
-// ===== Helpers =====
-const fmt = n=>{
-  n=Math.floor(n);
-  if(n<1000) return ""+n;
-  const u=["","K","M","B","T","Qa","Qi"];let i=0;
-  while(n>=1000&&i<u.length-1){n/=1000;i++;}
-  return n.toFixed(n<10?2:n<100?1:0)+u[i];
-};
-const def = id=>STATIONS.find(s=>s.id===id);
-const prestigeMult = ()=>1+S.essence*0.02;
-const pendingEssence = ()=>Math.floor(Math.sqrt(S.totalEarned/10000));
-function upgradeCost(id){const d=def(id);const lv=S.stations[id].level;return Math.floor(d.upCost*Math.pow(COST_GROWTH,Math.max(0,lv-(id==="mine"?1:0))));}
-function output(id){const d=def(id);const lv=Math.max(1,S.stations[id].level);return d.out*Math.pow(OUT_GROWTH,lv-1)*prestigeMult();}
-function capacity(id){const d=def(id);const lv=Math.max(1,S.stations[id].level);return Math.floor(d.cap+(lv-1)*d.cap/2);}
+const fmt=n=>{n=Math.floor(n);if(n<1000)return""+n;const u=["","K","M","B","T","Qa","Qi"];let i=0;
+  while(n>=1000&&i<u.length-1){n/=1000;i++;}return n.toFixed(n<10?2:n<100?1:0)+u[i];};
+const def=id=>STATIONS.find(s=>s.id===id);
+const prestigeMult=()=>1+S.essence*0.02;
+const pendingEssence=()=>Math.floor(Math.sqrt(S.totalEarned/10000));
+const owned=id=>S.stations[id].level>0;
+function upgradeCost(id){const d=def(id),lv=S.stations[id].level;return Math.floor(d.upCost*Math.pow(COST_GROWTH,Math.max(0,lv-(id==="mine"?1:0))));}
+function output(id){const d=def(id),lv=Math.max(1,S.stations[id].level);return d.out*Math.pow(OUT_GROWTH,lv-1)*prestigeMult();}
+function capacity(id){const d=def(id),lv=Math.max(1,S.stations[id].level);return Math.floor(d.cap+(lv-1)*d.cap/2);}
 function hasManager(id){const m=MANAGERS.find(m=>m.target===id);return m&&S.managers.includes(m.id);}
-function owned(id){return S.stations[id].level>0;}
 
-// ===== Core tick =====
+// ================= CORE LOGIC =================
 function advance(id,dt){
-  const s=S.stations[id], d=def(id);
-  if(!owned(id)) return;
+  const s=S.stations[id],d=def(id);if(!owned(id))return;
   const cap=capacity(id);
-  if(s.stored>=cap && d.kind!=="shipping") return;
+  if(s.stored>=cap&&d.kind!=="shipping")return;
   s.prog+=dt;
   while(s.prog>=d.cycle){
     s.prog-=d.cycle;
     const yld=Math.max(1,Math.round(output(id)));
     if(d.kind==="shipping"){
-      // shipping sells immediately if it has input buffered
       if(s.stored<=0){s.prog=0;break;}
-      const ship=Math.min(yld,s.stored);
-      s.stored-=ship;
+      const ship=Math.min(yld,s.stored);s.stored-=ship;
       const earn=ship*d.cashPer*prestigeMult();
-      S.cash+=earn; S.totalEarned+=earn; S.reputation+=ship*0.5;
-      progressOrder("shipping",ship);
-      floatNum(id,"+$"+fmt(earn));
+      S.cash+=earn;S.totalEarned+=earn;S.reputation+=ship*0.5;
+      progressOrder("shipping",ship);worldFloat(id,"+$"+fmt(earn));truckDepart();
     }else{
-      const room=cap-s.stored;
-      const add=Math.min(yld,room);
-      s.stored+=add;
-      progressOrder(d.kind,add);
-      pulse(id);
+      const room=cap-s.stored,add=Math.min(yld,room);s.stored+=add;
+      progressOrder(d.kind,add);spawnOre(id);machinePulse(id);
     }
   }
 }
-function flow(){
-  move("mine","crusher"); move("crusher","smelter"); move("smelter","shipping");
-}
-function move(from,to){
-  if(!owned(to)) return;
-  const c=S.stations[to], cd=def(to);
-  if(c.stored>=capacity(to)) return;
-  let need=capacity(to)-c.stored;
-  const p=S.stations[from];
-  const take=Math.min(need,p.stored);
-  p.stored-=take; c.stored+=take;
-}
-function tick(dt){
-  STATIONS.forEach(d=>{ if(hasManager(d.id)) advance(d.id,dt); });
-  flow();
-}
+function move(from,to){if(!owned(to))return;const c=S.stations[to];if(c.stored>=capacity(to))return;
+  let need=capacity(to)-c.stored;const p=S.stations[from];const take=Math.min(need,p.stored);p.stored-=take;c.stored+=take;
+  if(take>0)flowOre(from,to,take);}
+function flow(){move("mine","crusher");move("crusher","smelter");move("smelter","shipping");}
+function tick(dt){STATIONS.forEach(d=>{if(hasManager(d.id))advance(d.id,dt);});flow();}
 
-// ===== Orders (lightweight reputation goal) =====
-function newOrder(){
-  const kind=ORDER_KINDS[Math.floor(Math.random()*ORDER_KINDS.length)];
+function newOrder(){const kind=ORDER_KINDS[Math.floor(Math.random()*ORDER_KINDS.length)];
   const goal=10+Math.floor(Math.random()*40)*(S.prestige+1);
-  S.order={kind,goal,have:0,reward:Math.floor(goal*8*prestigeMult())};
-}
-function progressOrder(kind,n){
-  if(!S.order||S.order.kind!==kind) return;
-  S.order.have+=n;
-  if(S.order.have>=S.order.goal){
-    S.gems+=Math.max(2,Math.floor(S.order.goal/15));
-    S.cash+=S.order.reward; S.totalEarned+=S.order.reward; S.reputation+=5;
-    toast("Order selesai! +"+Math.max(2,Math.floor(S.order.goal/15))+"💎 +$"+fmt(S.order.reward));
-    newOrder();
-  }
-}
+  S.order={kind,goal,have:0,reward:Math.floor(goal*8*prestigeMult())};}
+function progressOrder(kind,n){if(!S.order||S.order.kind!==kind)return;S.order.have+=n;
+  if(S.order.have>=S.order.goal){const gem=Math.max(2,Math.floor(S.order.goal/15));
+    S.gems+=gem;S.cash+=S.order.reward;S.totalEarned+=S.order.reward;S.reputation+=5;
+    toast("Order selesai! +"+gem+"💎 +$"+fmt(S.order.reward));newOrder();}}
 
-// ===== Actions =====
-function tapStation(id){
-  if(!owned(id)){ toast("Beli stasiun ini dulu!"); return; }
-  advance(id,def(id).cycle); flow(); render();
-}
-function buyOrUpgrade(id){
-  const s=S.stations[id];
-  if(!owned(id)){
-    const d=def(id);
-    if(S.cash<d.cost){toast("Cash kurang!");return;}
-    S.cash-=d.cost; s.level=1;
-    toast(d.name+" dibeli!");
-  }else{
-    const c=upgradeCost(id);
-    if(S.cash<c){toast("Cash kurang!");return;}
-    S.cash-=c; s.level++;
-  }
-  render();
-}
-function hireManager(mid){
-  const m=MANAGERS.find(x=>x.id===mid);
-  if(S.managers.includes(mid)) return;
-  if(!owned(m.target)){toast("Beli stasiunnya dulu!");return;}
-  if(S.cash<m.cost){toast("Cash kurang!");return;}
-  S.cash-=m.cost; S.managers.push(mid);
-  toast(m.name+" direkrut! Produksi otomatis.");
-  renderManagers(); render();
-}
-function buyGems(n,kind){ S.gems+=n; if(kind==="starter"){toast("Starter Pack! +500💎");} else toast("+"+n+"💎"); render(); }
-function watchAd(){ S.gems+=25; toast("📺 Iklan selesai! +25💎"); render(); }
-function doPrestige(){
-  const e=pendingEssence();
-  if(e<1){toast("Butuh lebih banyak earning untuk prestige!");return;}
-  S.essence+=e; S.prestige++;
-  const keep={essence:S.essence,gems:S.gems,prestige:S.prestige,totalEarned:0,
-    reputation:0,unlockedLayer:1};
-  S=Object.assign(newState(),keep,{cash:50});
-  newOrder();
-  toast("✨ Prestige! +"+e+" essence. Multiplier x"+prestigeMult().toFixed(2));
-  showPanel("factory"); renderManagers(); render();
-}
+// ================= ACTIONS =================
+window.tapStation=id=>{if(!owned(id)){toast("Beli stasiun ini dulu!");return;}advance(id,def(id).cycle);flow();refreshSheet();};
+window.buyOrUpgrade=id=>{const s=S.stations[id];
+  if(!owned(id)){const d=def(id);if(S.cash<d.cost){toast("Cash kurang!");return;}S.cash-=d.cost;s.level=1;toast(d.name+" dibeli!");setStationBuilt(id);}
+  else{const c=upgradeCost(id);if(S.cash<c){toast("Cash kurang!");return;}S.cash-=c;s.level++;}
+  refreshSheet();};
+window.hireManager=mid=>{const m=MANAGERS.find(x=>x.id===mid);if(S.managers.includes(mid))return;
+  if(!owned(m.target)){toast("Beli stasiunnya dulu!");return;}if(S.cash<m.cost){toast("Cash kurang!");return;}
+  S.cash-=m.cost;S.managers.push(mid);toast(m.name+" direkrut! Auto-produksi.");renderManagers();refreshSheet();spawnWorker(m.target);};
+window.buyGems=(n,k)=>{S.gems+=n;toast(k==="starter"?"Starter Pack! +500💎":"+"+n+"💎");hud();};
+window.watchAd=()=>{S.gems+=25;toast("📺 +25💎");hud();};
+window.doPrestige=()=>{const e=pendingEssence();if(e<1){toast("Belum cukup earning!");return;}
+  S.essence+=e;S.prestige++;const keep={essence:S.essence,gems:S.gems,prestige:S.prestige};
+  S=Object.assign(newState(),keep,{cash:50});newOrder();
+  toast("✨ Prestige! +"+e+" essence (x"+prestigeMult().toFixed(2)+")");
+  rebuildWorld();renderManagers();showPanel("factory");hud();};
 
-// ===== Render =====
-function render(){
-  document.getElementById("cash").textContent=fmt(S.cash);
-  document.getElementById("gems").textContent=fmt(S.gems);
-  // order bar
-  if(S.order){
-    const o=S.order, kn=def(o.kind).name;
-    document.getElementById("orderText").textContent=`${o.have}/${o.goal} ${kn}`;
-    document.getElementById("orderFill").style.width=Math.min(100,o.have/o.goal*100)+"%";
-  }
-  renderFactory();
-  if(document.getElementById("prestige").classList.contains("show")) renderPrestige();
-  if(document.getElementById("orders").classList.contains("show")) renderRep();
-}
-function renderFactory(){
-  const f=document.getElementById("factory");
-  let html="";
-  STATIONS.forEach((d,i)=>{
-    const s=S.stations[d.id], own=owned(d.id);
-    const cap=capacity(d.id), pct=Math.min(100,s.stored/cap*100);
-    const auto=hasManager(d.id);
-    const buyLabel = own ? ("⬆ Upgrade $"+fmt(upgradeCost(d.id))) : ("🔓 Beli $"+fmt(d.cost));
-    const buyDis = own ? (S.cash<upgradeCost(d.id)) : (S.cash<d.cost);
-    html+=`<div class="station ${own?'':'locked'}" id="card-${d.id}">
-      <div class="st-head">
-        <div class="st-emoji" id="emoji-${d.id}">${d.emoji}</div>
-        <div class="st-info">
-          <div class="st-name">${d.name}</div>
-          <div class="st-lvl">${own?'Level '+s.level:'Belum dibeli'} ${auto?'· 🤖 AUTO':''}</div>
-          <div class="st-store">${d.kind==='shipping'?'Buffer':'Stok'}: ${Math.floor(s.stored)}/${cap}</div>
-          <div class="storebar"><div class="storefill ${pct>=100?'full':''}" style="width:${pct}%"></div></div>
-        </div>
-      </div>
-      <div class="st-actions">
-        ${own&&!auto?`<button class="btn tap" onclick="tapStation('${d.id}')">⛏ Kerja</button>`:''}
-        <button class="btn buy" onclick="buyOrUpgrade('${d.id}')" ${buyDis?'disabled':''}>${buyLabel}</button>
-      </div>
-    </div>`;
-    if(i<STATIONS.length-1) html+=`<div class="chain-arrow">⬇</div>`;
-  });
-  f.innerHTML=html;
-}
-function renderManagers(){
-  let html="";
-  MANAGERS.forEach(m=>{
-    const hired=S.managers.includes(m.id);
-    html+=`<div class="card"><div class="row">
-      <div style="font-size:30px">👷</div>
-      <div style="flex:1"><h3>${m.name}</h3><p>${m.desc}</p></div>
-    </div>
-    <button class="btn ${hired?'mgr hired':'buy'}" onclick="hireManager('${m.id}')" ${hired?'disabled':''}>
-      ${hired?'✅ Direkrut':'Rekrut $'+fmt(m.cost)}</button></div>`;
-  });
-  document.getElementById("mgrList").innerHTML=html;
-}
-function renderPrestige(){
-  document.getElementById("pTotal").textContent=fmt(S.totalEarned);
-  document.getElementById("pLevel").textContent=S.prestige;
-  document.getElementById("pMultNow").textContent="x"+prestigeMult().toFixed(2);
+// ================= UI: HUD / panels / sheet =================
+function hud(){document.getElementById("cash").textContent=fmt(S.cash);document.getElementById("gems").textContent=fmt(S.gems);
+  if(S.order){document.getElementById("orderText").textContent=`${S.order.have}/${S.order.goal} ${def(S.order.kind).name}`;
+    document.getElementById("orderFill").style.width=Math.min(100,S.order.have/S.order.goal*100)+"%";}}
+let selected=null;
+function openSheet(id){selected=id;document.getElementById("sheet").classList.add("show");refreshSheet();}
+window.closeSheet=()=>{selected=null;document.getElementById("sheet").classList.remove("show");};
+function refreshSheet(){hud();if(!selected)return;
+  const d=def(selected),s=S.stations[selected],own=owned(selected),cap=capacity(selected),auto=hasManager(selected);
+  document.getElementById("shEmoji").textContent=d.emoji;
+  document.getElementById("shName").textContent=d.name;
+  document.getElementById("shSub").textContent=(own?"Level "+s.level:"Belum dibeli")+(auto?" · 🤖 AUTO":"");
+  document.getElementById("shStore").textContent=(d.kind==="shipping"?"Buffer":"Stok")+`: ${Math.floor(s.stored)}/${cap}`;
+  const fillEl=document.getElementById("shFill");fillEl.style.width=Math.min(100,s.stored/cap*100)+"%";
+  fillEl.className="storefill"+(s.stored>=cap?" full":"");
+  const m=MANAGERS.find(x=>x.target===selected);
+  let acts="";
+  if(own&&!auto)acts+=`<button class="btn tap" onclick="tapStation('${selected}')">⛏ Kerja</button>`;
+  const buyDis=own?(S.cash<upgradeCost(selected)):(S.cash<d.cost);
+  acts+=`<button class="btn buy" onclick="buyOrUpgrade('${selected}')" ${buyDis?"disabled":""}>${own?"⬆ $"+fmt(upgradeCost(selected)):"🔓 Beli $"+fmt(d.cost)}</button>`;
+  if(m){const hired=S.managers.includes(m.id);
+    acts+=`<button class="btn ${hired?"mgr hired":"mgr"}" onclick="hireManager('${m.id}')" ${hired?"disabled":""}>${hired?"✅":"👷 $"+fmt(m.cost)}</button>`;}
+  document.getElementById("shActs").innerHTML=acts;}
+function renderManagers(){let h="";MANAGERS.forEach(m=>{const hired=S.managers.includes(m.id);
+  h+=`<div class="card"><div class="row"><div style="font-size:30px">👷</div>
+    <div style="flex:1"><h3>${m.name}</h3><p>${m.desc}</p></div></div>
+    <button class="btn ${hired?"mgr hired":"buy"}" onclick="hireManager('${m.id}')" ${hired?"disabled":""}>${hired?"✅ Direkrut":"Rekrut $"+fmt(m.cost)}</button></div>`;});
+  document.getElementById("mgrList").innerHTML=h;}
+function renderPrestige(){document.getElementById("pTotal").textContent=fmt(S.totalEarned);
+  document.getElementById("pLevel").textContent=S.prestige;document.getElementById("pMultNow").textContent="x"+prestigeMult().toFixed(2);
   document.getElementById("pEssence").textContent="+"+pendingEssence();
-  document.getElementById("pMultNew").textContent="x"+(1+(S.essence+pendingEssence())*0.02).toFixed(2);
-}
-function renderRep(){
-  document.getElementById("repInfo").innerHTML=
-    `<div class="card"><div class="stat" style="color:#3E2723;background:#fff4d6"><span>⭐ Reputasi</span><span>${fmt(S.reputation)}</span></div>
-     <div class="stat" style="color:#3E2723;background:#fff4d6"><span>✨ Essence</span><span>${fmt(S.essence)}</span></div>
-     <div class="stat" style="color:#3E2723;background:#fff4d6"><span>💰 Total earned</span><span>${fmt(S.totalEarned)}</span></div></div>`;
-}
-
-// ===== FX =====
-function floatNum(id,txt){
-  const card=document.getElementById("card-"+id); if(!card)return;
-  const el=document.createElement("div"); el.className="float"; el.textContent=txt;
-  el.style.left=(20+Math.random()*60)+"%"; el.style.top="20px";
-  card.appendChild(el); setTimeout(()=>el.remove(),1000);
-}
-function pulse(id){
-  const e=document.getElementById("emoji-"+id); if(!e)return;
-  e.classList.add("pulse"); setTimeout(()=>e.classList.remove("pulse"),120);
-}
-let toastT;
-function toast(msg){
-  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
-  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200);
-}
-
-// ===== Nav =====
-function showPanel(name){
-  document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("show",p.id===name));
+  document.getElementById("pMultNew").textContent="x"+(1+(S.essence+pendingEssence())*0.02).toFixed(2);}
+function renderRep(){document.getElementById("repInfo").innerHTML=
+  `<div class="card"><div class="stat" style="color:#3E2723;background:#fff4d6"><span>⭐ Reputasi</span><span>${fmt(S.reputation)}</span></div>
+   <div class="stat" style="color:#3E2723;background:#fff4d6"><span>✨ Essence</span><span>${fmt(S.essence)}</span></div>
+   <div class="stat" style="color:#3E2723;background:#fff4d6"><span>💰 Total earned</span><span>${fmt(S.totalEarned)}</span></div></div>`;}
+function showPanel(name){document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("show",p.id===name&&name!=="factory"));
   document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.p===name));
-  if(name==="manager")renderManagers();
-  render();
-}
+  if(name==="manager")renderManagers();if(name==="prestige")renderPrestige();if(name==="orders")renderRep();
+  if(name!=="factory")closeSheet();}
+window.showPanel=showPanel;
 document.querySelectorAll(".navbtn").forEach(b=>b.onclick=()=>showPanel(b.dataset.p));
 
-// ===== Save / Load / Offline =====
-function save(){ S.savedAt=Date.now(); localStorage.setItem(SAVE_KEY,JSON.stringify(S)); }
-function load(){
-  const raw=localStorage.getItem(SAVE_KEY); if(!raw)return false;
-  try{
-    const d=JSON.parse(raw);
-    S=Object.assign(newState(),d);
-    // ensure all stations exist (forward-compat)
-    STATIONS.forEach(x=>{ if(!S.stations[x.id])S.stations[x.id]={level:0,stored:0,prog:0}; });
-    return true;
-  }catch(e){return false;}
+let toastT;function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2200);}
+window.toast=toast;
+
+// ================= SAVE / OFFLINE =================
+function save(){S.savedAt=Date.now();localStorage.setItem(SAVE_KEY,JSON.stringify(S));}
+function load(){const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;
+  try{const d=JSON.parse(raw);S=Object.assign(newState(),d);
+    STATIONS.forEach(x=>{if(!S.stations[x.id])S.stations[x.id]={level:0,stored:0,prog:0};});return true;}catch(e){return false;}}
+function resolveOffline(){if(!S.savedAt)return;const secs=Math.min(MAX_OFFLINE,(Date.now()-S.savedAt)/1000);if(secs<60)return;
+  let earn=0;STATIONS.forEach(d=>{if(d.kind!=="shipping"||!hasManager(d.id))return;
+    earn+=(secs/d.cycle)*output(d.id)*d.cashPer*prestigeMult();});earn=Math.floor(earn*OFFLINE_EFF);
+  if(earn>0){S.cash+=earn;S.totalEarned+=earn;document.getElementById("offlineAmt").textContent="+$"+fmt(earn);
+    document.getElementById("overlay").classList.add("show");}}
+window.closeOffline=()=>document.getElementById("overlay").classList.remove("show");
+
+/* ============================================================
+   3D WORLD (Three.js) — isometric low-poly Lumber-Inc style
+   ============================================================ */
+const PAL={gold:0xFFD700,darkGold:0xB8860B,brown:0x8B4513,darkBrown:0x3E2723,
+  green:0x4CAF50,grass:0x6abf4b,blue:0x4FC3F7,orange:0xFF9800,red:0xF44336,
+  rock:0x6d5640,steel:0x9aa4ad,wood:0x9c6b3f};
+
+let renderer,scene,camera,controls,raycaster,pointer;
+const stationNodes={};      // id -> {group, machine, built}
+const workers=[];           // {mesh, station, t, dir, base}
+const oreCubes=[];          // {mesh, from, to, t, speed}
+const floaters=[];          // {pos3, el, life}
+let truck=null, truckAnim=0;
+
+function mat(color,opts={}){return new THREE.MeshStandardMaterial({color,roughness:opts.r??0.85,metalness:opts.m??0.05,emissive:opts.e??0x000000,emissiveIntensity:opts.ei??1});}
+function box(w,h,d,color,o){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,o));m.castShadow=m.receiveShadow=true;return m;}
+function cyl(rt,rb,h,color,seg=8){const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),mat(color));m.castShadow=m.receiveShadow=true;return m;}
+function cone(r,h,color,seg=6){const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,seg),mat(color));m.castShadow=true;return m;}
+
+function v(p){return new THREE.Vector3(p[0],p[1],p[2]);}
+
+function initThree(){
+  const canvas=document.getElementById("scene");
+  renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  scene=new THREE.Scene();scene.background=new THREE.Color(0x87CEEB);
+  scene.fog=new THREE.Fog(0x87CEEB,28,55);
+
+  const aspect=canvas.clientWidth/canvas.clientHeight;
+  const fz=9;
+  camera=new THREE.OrthographicCamera(-fz*aspect,fz*aspect,fz,-fz,0.1,200);
+  camera.position.set(18,18,18);camera.lookAt(0,0,0);
+
+  controls=new OrbitControls(camera,renderer.domElement);
+  controls.enableRotate=false;       // keep isometric angle (Lumber Inc style)
+  controls.enablePan=true;controls.screenSpacePanning=true;
+  controls.minZoom=0.55;controls.maxZoom=2.2;controls.enableDamping=true;controls.dampingFactor=0.12;
+  controls.mouseButtons={LEFT:THREE.MOUSE.PAN};controls.touches={ONE:THREE.TOUCH.PAN,TWO:THREE.TOUCH.DOLLY_PAN};
+
+  // lights
+  scene.add(new THREE.HemisphereLight(0xcfeaff,0x6b4a2a,0.9));
+  const sun=new THREE.DirectionalLight(0xfff2cc,1.25);sun.position.set(14,22,8);sun.castShadow=true;
+  sun.shadow.mapSize.set(2048,2048);const s=22;
+  sun.shadow.camera.left=-s;sun.shadow.camera.right=s;sun.shadow.camera.top=s;sun.shadow.camera.bottom=-s;
+  sun.shadow.camera.near=1;sun.shadow.camera.far=70;sun.shadow.bias=-0.0004;scene.add(sun);
+
+  buildGround();
+  STATIONS.forEach(buildStation);
+  buildConveyors();
+
+  raycaster=new THREE.Raycaster();pointer=new THREE.Vector2();
+  renderer.domElement.addEventListener("pointerdown",onDown);
+  renderer.domElement.addEventListener("pointerup",onUp);
+  window.addEventListener("resize",onResize);onResize();
 }
-function resolveOffline(){
-  if(!S.savedAt)return;
-  const secs=Math.min(MAX_OFFLINE,(Date.now()-S.savedAt)/1000);
-  if(secs<60)return;
-  let earn=0;
-  STATIONS.forEach(d=>{
-    if(d.kind!=="shipping"||!hasManager(d.id))return;
-    const cycles=secs/d.cycle;
-    earn+=cycles*output(d.id)*d.cashPer*prestigeMult();
-  });
-  earn=Math.floor(earn*OFFLINE_EFF);
-  if(earn>0){
-    S.cash+=earn; S.totalEarned+=earn;
-    document.getElementById("offlineAmt").textContent="+$"+fmt(earn);
-    document.getElementById("overlay").classList.add("show");
+
+function buildGround(){
+  // layered isometric platform: grassy surface on top, rocky/brown sides
+  const plat=new THREE.Group();
+  const top=box(26,1.2,22,PAL.grass,{r:0.95});top.position.y=-0.6;plat.add(top);
+  const dirt=box(25,2.4,21,PAL.brown,{r:1});dirt.position.y=-2.0;plat.add(dirt);
+  const deep=box(23.5,3,19.5,PAL.darkBrown,{r:1});deep.position.y=-4.4;plat.add(deep);
+  // scattered rocks & trees for life
+  for(let i=0;i<10;i++){
+    const r=box(0.8+Math.random()*0.7,0.7,0.8+Math.random()*0.7,PAL.rock);
+    r.position.set(-11+Math.random()*22,-0.1,-9+Math.random()*18);r.rotation.y=Math.random()*3;plat.add(r);
+  }
+  for(let i=0;i<6;i++){
+    const tree=new THREE.Group();
+    const trunk=cyl(0.18,0.24,1.1,PAL.wood);trunk.position.y=0.1;
+    const leaf=cone(0.95,1.6,0x3f8f3a,7);leaf.position.y=1.2;
+    tree.add(trunk,leaf);tree.position.set(-12+ (i%2?1:-1)*(8+Math.random()*3), 0, -9+i*3.2);
+    plat.add(tree);
+  }
+  scene.add(plat);
+}
+
+function buildStation(d){
+  const g=new THREE.Group();g.position.copy(v(d.pos));
+  // base pad
+  const pad=cyl(2.0,2.0,0.4,PAL.darkGold,12);pad.position.y=0.2;g.add(pad);
+  let machine=new THREE.Group();machine.position.y=0.4;g.add(machine);
+
+  if(d.kind==="mine"){
+    // rocky gold mound + cave entrance
+    const mound=new THREE.Mesh(new THREE.IcosahedronGeometry(2,0),mat(PAL.rock));
+    mound.scale.set(1.3,0.9,1.3);mound.position.y=1;mound.castShadow=true;machine.add(mound);
+    const cave=box(1.2,1.2,0.4,0x1a1109);cave.position.set(0,0.9,1.7);machine.add(cave);
+    for(let i=0;i<6;i++){const nug=new THREE.Mesh(new THREE.OctahedronGeometry(0.22,0),mat(PAL.gold,{m:0.6,r:0.3,e:PAL.gold,ei:0.25}));
+      nug.position.set(-1+Math.random()*2,1+Math.random()*1.2,-0.8+Math.random()*1.4);machine.add(nug);}
+  } else if(d.kind==="crusher"){
+    const body=box(2.4,1.8,2.0,PAL.steel,{m:0.4,r:0.5});body.position.y=1.1;machine.add(body);
+    const funnel=cone(1.1,1.0,PAL.orange,8);funnel.rotation.x=Math.PI;funnel.position.y=2.4;machine.add(funnel);
+    const wheel=cyl(0.7,0.7,0.5,PAL.darkBrown,10);wheel.rotation.z=Math.PI/2;wheel.position.set(1.3,1.3,0);machine.add(wheel);
+    machine.userData.spin=wheel;
+  } else if(d.kind==="smelter"){
+    const body=box(2.2,1.9,2.2,0x7a5230,{r:0.7});body.position.y=1.1;machine.add(body);
+    const mouth=box(1.0,0.9,0.3,0x000000);mouth.position.set(0,1.0,1.15);machine.add(mouth);
+    const fire=cone(0.55,1.0,PAL.orange,7);fire.material=mat(PAL.orange,{e:0xff6a00,ei:1.4,r:0.4});fire.position.set(0,1.0,1.25);machine.add(fire);
+    const chim=cyl(0.4,0.5,1.6,PAL.rock,8);chim.position.set(-0.7,2.7,-0.4);machine.add(chim);
+    machine.userData.fire=fire;
+  } else if(d.kind==="shipping"){
+    const t=new THREE.Group();
+    const trailer=box(2.6,1.4,1.5,PAL.gold,{m:0.3,r:0.4});trailer.position.set(-0.5,1.1,0);
+    const cab=box(1.2,1.3,1.5,PAL.red);cab.position.set(1.4,1.05,0);
+    const w1=cyl(0.4,0.4,0.3,0x222,12);w1.rotation.z=Math.PI/2;w1.position.set(-1.2,0.4,0.8);
+    const w2=w1.clone();w2.position.z=-0.8;const w3=w1.clone();w3.position.set(1.2,0.4,0.8);const w4=w3.clone();w4.position.z=-0.8;
+    t.add(trailer,cab,w1,w2,w3,w4);machine.add(t);machine.userData.truck=t;truck=t;
+  }
+  scene.add(g);
+  stationNodes[d.id]={group:g,machine,built:owned(d.id)};
+  applyBuiltState(d.id);
+}
+
+function applyBuiltState(id){
+  const node=stationNodes[id];if(!node)return;const built=owned(id);node.built=built;
+  node.machine.traverse(o=>{if(o.material){o.material.transparent=!built;o.material.opacity=built?1:0.32;}});
+  if(!node.lock&&!built){
+    const lock=box(0.9,0.9,0.9,0x444);lock.position.y=2.6;node.group.add(lock);
+    const txt=null;node.lock=lock;
+  }
+  if(node.lock)node.lock.visible=!built;
+}
+function setStationBuilt(id){applyBuiltState(id);if(hasManager(id))spawnWorker(id);}
+
+function buildConveyors(){
+  for(let i=0;i<STATIONS.length-1;i++){
+    const a=v(STATIONS[i].pos),b=v(STATIONS[i+1].pos);
+    const mid=a.clone().add(b).multiplyScalar(0.5);mid.y=0.5;
+    const len=a.distanceTo(b)-3.2;const dir=b.clone().sub(a);
+    const belt=box(len,0.25,0.8,PAL.darkBrown,{r:0.9});
+    belt.position.copy(mid);belt.lookAt(b.x,0.5,b.z);belt.rotateY(Math.PI/2);
+    scene.add(belt);
+    // legs
+    [-len/2+0.5,0,len/2-0.5].forEach(off=>{const leg=cyl(0.1,0.1,0.5,PAL.steel);
+      const p=mid.clone().add(dir.clone().normalize().multiplyScalar(off));leg.position.set(p.x,0.25,p.z);scene.add(leg);});
   }
 }
-function closeOffline(){document.getElementById("overlay").classList.remove("show");}
 
-// ===== Boot =====
-if(!load()) newState();
-if(!S.order) newOrder();
-resolveOffline();
-renderManagers(); render();
+function rebuildWorld(){
+  // wipe dynamic objects & reset visuals after prestige
+  workers.forEach(w=>scene.remove(w.mesh));workers.length=0;
+  oreCubes.forEach(o=>scene.remove(o.mesh));oreCubes.length=0;
+  STATIONS.forEach(d=>applyBuiltState(d.id));
+  STATIONS.forEach(d=>{if(hasManager(d.id))spawnWorker(d.id);});
+}
 
+// ---- workers ----
+function makeWorker(){
+  const g=new THREE.Group();
+  const body=box(0.5,0.7,0.35,PAL.blue);body.position.y=0.75;
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.25,10,8),mat(0xffd9a0));head.position.y=1.3;
+  const helm=cone(0.3,0.3,PAL.orange,8);helm.position.y=1.5;
+  const legL=box(0.16,0.5,0.16,PAL.darkBrown);legL.position.set(-0.13,0.3,0);
+  const legR=legL.clone();legR.position.x=0.13;
+  g.add(body,head,helm,legL,legR);g.userData={legL,legR};
+  g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
+  return g;
+}
+function spawnWorker(id){
+  if(workers.some(w=>w.station===id))return;
+  const node=stationNodes[id];if(!node)return;
+  const mesh=makeWorker();const base=node.group.position.clone();
+  mesh.position.copy(base).add(new THREE.Vector3(1.6,0,1.6));
+  scene.add(mesh);
+  workers.push({mesh,station:id,base,t:Math.random(),dir:1});
+}
+function updateWorkers(dt){
+  workers.forEach(w=>{
+    w.t+=dt*0.6*w.dir;
+    if(w.t>1){w.t=1;w.dir=-1;}else if(w.t<0){w.t=0;w.dir=1;}
+    const a=w.base.clone().add(new THREE.Vector3(1.6,0,1.6));
+    const b=w.base.clone().add(new THREE.Vector3(-0.4,0,-0.4));
+    w.mesh.position.lerpVectors(a,b,w.t);
+    w.mesh.position.y=Math.abs(Math.sin(w.t*Math.PI*6))*0.12;
+    const swing=Math.sin(w.t*Math.PI*8)*0.5;
+    w.mesh.userData.legL.rotation.x=swing;w.mesh.userData.legR.rotation.x=-swing;
+    w.mesh.lookAt(b.x,w.mesh.position.y,b.z);
+  });
+}
+
+// ---- ore cubes on conveyor ----
+function spawnOre(id){ // ore appears at station, ready to flow
+}
+function flowOre(from,to){
+  const a=v(def(from).pos).add(new THREE.Vector3(0,0.9,0));
+  const b=v(def(to).pos).add(new THREE.Vector3(0,0.9,0));
+  const colorByKind={mine:PAL.gold,crusher:0xd9b35a,smelter:PAL.orange};
+  const cube=box(0.4,0.4,0.4,colorByKind[from]||PAL.gold,{m:0.4,r:0.4});
+  cube.position.copy(a);scene.add(cube);
+  oreCubes.push({mesh:cube,from:a,to:b,t:0,speed:0.9});
+}
+function updateOre(dt){
+  for(let i=oreCubes.length-1;i>=0;i--){const o=oreCubes[i];o.t+=dt*o.speed;
+    if(o.t>=1){scene.remove(o.mesh);oreCubes.splice(i,1);continue;}
+    o.mesh.position.lerpVectors(o.from,o.to,o.t);
+    o.mesh.position.y=0.9+Math.sin(o.t*Math.PI)*0.25;o.mesh.rotation.y+=dt*4;}
+}
+
+function machinePulse(id){const node=stationNodes[id];if(!node)return;
+  node.machine.scale.setScalar(1.12);}
+function truckDepart(){truckAnim=1;}
+
+// ---- world-space floating numbers projected to screen ----
+function worldFloat(id,txt){
+  const p=v(def(id).pos).add(new THREE.Vector3(0,2.6,0));
+  const el=document.createElement("div");el.className="float";el.textContent=txt;
+  document.getElementById("app").appendChild(el);
+  floaters.push({pos:p,el,life:1});
+}
+function updateFloaters(dt){
+  for(let i=floaters.length-1;i>=0;i--){const f=floaters[i];f.life-=dt;
+    if(f.life<=0){f.el.remove();floaters.splice(i,1);continue;}
+    const s=f.pos.clone().project(camera);
+    const x=(s.x*0.5+0.5)*renderer.domElement.clientWidth;
+    const y=(-s.y*0.5+0.5)*renderer.domElement.clientHeight;
+    f.el.style.left=x+"px";f.el.style.top=y+"px";}
+}
+
+// ---- input ----
+let downXY=null,moved=false;
+function onDown(e){downXY=[e.clientX,e.clientY];moved=false;}
+function onUp(e){
+  if(!downXY)return;const dx=e.clientX-downXY[0],dy=e.clientY-downXY[1];
+  downXY=null;if(Math.hypot(dx,dy)>8)return; // was a drag, ignore
+  const r=renderer.domElement.getBoundingClientRect();
+  pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1;
+  raycaster.setFromCamera(pointer,camera);
+  // gather station groups
+  const targets=[];Object.values(stationNodes).forEach(n=>n.group.traverse(o=>{if(o.isMesh)targets.push(o);}));
+  const hit=raycaster.intersectObjects(targets,false)[0];
+  if(hit){let g=hit.object;while(g.parent&&!g.userData.stationId&&g.parent!==scene)g=g.parent;
+    // find which station group
+    for(const [id,n] of Object.entries(stationNodes)){if(isDescendant(n.group,hit.object)){showPanel("factory");openSheet(id);return;}}}
+}
+function isDescendant(parent,obj){let o=obj;while(o){if(o===parent)return true;o=o.parent;}return false;}
+
+function onResize(){const c=renderer.domElement;const w=c.clientWidth,h=c.clientHeight;
+  renderer.setSize(w,h,false);const aspect=w/h;const fz=9;
+  camera.left=-fz*aspect;camera.right=fz*aspect;camera.top=fz;camera.bottom=-fz;camera.updateProjectionMatrix();}
+
+// ---- main loop ----
 let last=performance.now();
 function loop(now){
-  const dt=Math.min(0.25,(now-last)/1000); last=now;
+  const dt=Math.min(0.25,(now-last)/1000);last=now;
   tick(dt);
-  // light render throttle
-  render();
+  // animate machines back to scale 1
+  Object.values(stationNodes).forEach(n=>{n.machine.scale.lerp(new THREE.Vector3(1,1,1),0.2);
+    if(n.machine.userData.spin)n.machine.userData.spin.rotation.x+=dt*4;
+    if(n.machine.userData.fire){const f=n.machine.userData.fire;f.scale.y=1+Math.sin(now*0.01)*0.25;}});
+  if(truck&&truckAnim>0){truck.position.x=-Math.sin(truckAnim*Math.PI)*4;truckAnim-=dt*0.6;if(truckAnim<0){truckAnim=0;truck.position.x=0;}}
+  updateWorkers(dt);updateOre(dt);updateFloaters(dt);
+  controls.update();hud();
+  renderer.render(scene,camera);
   requestAnimationFrame(loop);
 }
-requestAnimationFrame(loop);
-setInterval(save,5000);
-window.addEventListener("beforeunload",save);
-document.addEventListener("visibilitychange",()=>{ if(document.hidden)save(); });
+
+// ================= BOOT =================
+function boot(){
+  if(!load())newState();
+  if(!S.order)newOrder();
+  initThree();
+  // workers for already-hired managers
+  STATIONS.forEach(d=>{if(hasManager(d.id))spawnWorker(d.id);});
+  resolveOffline();renderManagers();hud();
+  document.getElementById("loading").style.display="none";
+  requestAnimationFrame(loop);
+  setInterval(save,5000);
+  window.addEventListener("beforeunload",save);
+  document.addEventListener("visibilitychange",()=>{if(document.hidden)save();});
+}
+try{boot();}catch(err){
+  document.getElementById("loading").innerHTML="<div style='padding:20px;text-align:center'>Gagal memuat 3D.<br>Pastikan ada koneksi internet (Three.js dari CDN).<br><br>"+err.message+"</div>";
+  console.error(err);
+}
 </script>
 </body>
 </html>
