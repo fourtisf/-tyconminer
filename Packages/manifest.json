@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "com.unity.render-pipelines.universal": "17.0.3",
+    "com.unity.textmeshpro": "3.2.0-pre.10",
+    "com.unity.cinemachine": "3.1.1",
+    "com.unity.inputsystem": "1.11.2",
+    "com.unity.localization": "1.5.3",
+    "com.unity.addressables": "2.3.1",
+    "com.unity.purchasing": "4.12.2",
+    "com.unity.feature.mobile": "2.0.1",
+    "com.unity.ide.visualstudio": "2.0.22",
+    "com.unity.test-framework": "1.4.5"
+  },
+  "comment": "Brief 7.3 packages. Add via Package Manager/registries (NOT this file): Google Mobile Ads SDK (AdMob), Firebase (Analytics/Crashlytics/Remote Config), and DOTween (Asset Store). Unity Ads ships with com.unity.services if mediation is needed."
+}
