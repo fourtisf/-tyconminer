@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gold Mine Tycoon</title>
+<style>
+  :root{
+    --gold:#FFD700; --dark-gold:#B8860B; --cave-brown:#8B4513; --dark-brown:#3E2723;
+    --green:#4CAF50; --blue:#4FC3F7; --orange:#FF9800; --red:#F44336;
+    --sky:#87CEEB; --light:#FFF8DC;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:'Nunito','Segoe UI',system-ui,sans-serif;
+    background:linear-gradient(#87CEEB 0%, #5a9bd4 18%, #8B4513 40%, #3E2723 100%);
+    color:#fff;min-height:100vh;display:flex;justify-content:center;
+    user-select:none;overflow-x:hidden;
+  }
+  #app{width:100%;max-width:480px;min-height:100vh;display:flex;flex-direction:column;
+    position:relative;background:rgba(0,0,0,.06)}
+
+  /* TOP HUD */
+  #hud{display:flex;align-items:center;gap:8px;padding:10px 12px;
+    background:linear-gradient(#3E2723,#5d3a1a);box-shadow:0 2px 8px rgba(0,0,0,.4);z-index:5}
+  .cur{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.35);
+    padding:5px 10px;border-radius:20px;font-weight:800;font-size:14px;border:2px solid var(--dark-gold)}
+  .cur.gem{border-color:var(--blue)}
+  .cur .ic{font-size:16px}
+  #title{flex:1;text-align:center;font-weight:900;letter-spacing:.5px;
+    color:var(--gold);text-shadow:0 2px 0 var(--dark-gold);font-size:15px}
+
+  /* ORDER BAR */
+  #orderbar{padding:6px 12px;background:rgba(255,152,0,.18);font-size:12px;
+    display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(0,0,0,.2)}
+  #orderbar .bar{flex:1;height:8px;background:rgba(0,0,0,.3);border-radius:5px;overflow:hidden}
+  #orderbar .fill{height:100%;width:0;background:var(--orange);transition:width .3s}
+
+  /* FACTORY VIEW */
+  #factory{flex:1;padding:10px;overflow-y:auto}
+  .station{
+    background:linear-gradient(145deg,#6b4a2a,#4a3018);
+    border:3px solid var(--dark-gold);border-radius:16px;padding:12px;margin-bottom:12px;
+    position:relative;box-shadow:0 4px 0 rgba(0,0,0,.3)}
+  .station.locked{opacity:.45;filter:grayscale(.7)}
+  .st-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .st-emoji{font-size:34px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5));transition:transform .1s}
+  .st-emoji.pulse{transform:scale(1.25)}
+  .st-info{flex:1}
+  .st-name{font-weight:900;font-size:16px}
+  .st-lvl{font-size:11px;color:var(--gold)}
+  .st-store{font-size:12px;opacity:.9;margin-top:2px}
+  .storebar{height:7px;background:rgba(0,0,0,.35);border-radius:5px;overflow:hidden;margin-top:4px}
+  .storefill{height:100%;width:0;background:var(--green);transition:width .2s}
+  .storefill.full{background:var(--red)}
+  .st-actions{display:flex;gap:8px;margin-top:10px}
+  .btn{flex:1;border:none;border-radius:12px;padding:9px;font-weight:800;font-size:13px;
+    cursor:pointer;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.3);transition:transform .05s}
+  .btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.3)}
+  .btn.buy{background:var(--green)}
+  .btn.buy:disabled{background:#5a5a5a;box-shadow:0 3px 0 rgba(0,0,0,.2);cursor:not-allowed;opacity:.7}
+  .btn.tap{background:var(--orange)}
+  .btn.mgr{background:var(--blue);color:#062a3a}
+  .btn.mgr.hired{background:var(--dark-gold);color:#fff}
+  .chain-arrow{text-align:center;font-size:20px;color:var(--gold);margin:-6px 0 6px}
+
+  /* floating numbers */
+  .float{position:absolute;font-weight:900;font-size:15px;color:var(--gold);
+    pointer-events:none;animation:floatup 1s ease-out forwards;text-shadow:0 1px 2px #000;z-index:9}
+  @keyframes floatup{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-40px)}}
+
+  /* BOTTOM NAV */
+  #nav{display:flex;background:linear-gradient(#3E2723,#2a1810);border-top:3px solid var(--dark-gold)}
+  .navbtn{flex:1;background:none;border:none;color:#caa;padding:8px 2px 10px;font-size:10px;
+    font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .navbtn .ic{font-size:20px}
+  .navbtn.active{color:var(--gold)}
+
+  /* MODAL panels */
+  .panel{display:none;flex:1;padding:14px;overflow-y:auto}
+  .panel.show{display:block}
+  .card{background:var(--light);color:var(--dark-brown);border-radius:14px;padding:12px;
+    margin-bottom:10px;border:2px solid var(--dark-gold);box-shadow:0 3px 0 rgba(0,0,0,.2)}
+  .card h3{font-size:15px;margin-bottom:3px}
+  .card p{font-size:12px;color:#5a4a3a;margin-bottom:8px}
+  .card .row{display:flex;align-items:center;gap:8px}
+  .badge{background:var(--orange);color:#fff;font-size:10px;font-weight:800;padding:2px 8px;
+    border-radius:10px;margin-left:auto}
+  .badge.best{background:var(--green)}
+  .panel h2{color:var(--gold);text-shadow:0 2px 0 var(--dark-gold);margin-bottom:12px;font-size:20px;text-align:center}
+
+  /* prestige */
+  #prestige .glow{text-align:center;font-size:60px;margin:10px}
+  .stat{display:flex;justify-content:space-between;background:rgba(0,0,0,.25);
+    padding:8px 12px;border-radius:10px;margin-bottom:6px;font-size:13px;font-weight:700}
+
+  /* toast / offline modal */
+  #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+    background:var(--dark-brown);border:2px solid var(--gold);padding:10px 18px;border-radius:14px;
+    font-weight:800;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:20;text-align:center}
+  #toast.show{opacity:1}
+  #overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;
+    align-items:center;justify-content:center;z-index:30;padding:24px}
+  #overlay.show{display:flex}
+  #offlineBox{background:var(--light);color:var(--dark-brown);border-radius:18px;padding:22px;
+    text-align:center;max-width:320px;border:3px solid var(--gold)}
+  #offlineBox h2{color:var(--dark-gold);margin-bottom:8px}
+  #offlineBox .amt{font-size:26px;font-weight:900;color:var(--green);margin:10px 0}
+  #offlineBox button{background:var(--green);color:#fff;border:none;padding:12px 28px;
+    border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 0 #2e7d32}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="cur" id="cashHud"><span class="ic">💰</span><span id="cash">0</span></div>
+    <div id="title">GOLD MINE TYCOON</div>
+    <div class="cur gem" id="gemHud"><span class="ic">💎</span><span id="gems">0</span></div>
+  </div>
+
+  <div id="orderbar">
+    <span>📦 Order:</span><span id="orderText">—</span>
+    <div class="bar"><div class="fill" id="orderFill"></div></div>
+  </div>
+
+  <!-- FACTORY -->
+  <div id="factory" class="panel show"></div>
+
+  <!-- MANAGER -->
+  <div id="manager" class="panel"><h2>👷 Manager</h2><div id="mgrList"></div></div>
+
+  <!-- ORDERS -->
+  <div id="orders" class="panel"><h2>📦 Reputasi & Order</h2>
+    <div class="card"><h3>Cara kerja</h3><p>Setiap emas batangan yang dikirim (Shipping) menambah Cash & sedikit Reputasi. Reputasi membuka layer tambang baru.</p></div>
+    <div id="repInfo"></div>
+  </div>
+
+  <!-- PRESTIGE -->
+  <div id="prestige" class="panel"><h2>✨ Prestige</h2>
+    <div class="glow">⛏️✨</div>
+    <div class="stat"><span>Total Cash earned</span><span id="pTotal">0</span></div>
+    <div class="stat"><span>Prestige level</span><span id="pLevel">0</span></div>
+    <div class="stat"><span>Multiplier sekarang</span><span id="pMultNow">x1.00</span></div>
+    <div class="stat"><span>Essence didapat</span><span id="pEssence">0</span></div>
+    <div class="stat"><span>Multiplier baru</span><span id="pMultNew">x1.00</span></div>
+    <button class="btn buy" style="margin-top:14px" onclick="doPrestige()">RESET & PRESTIGE</button>
+    <p style="font-size:11px;text-align:center;margin-top:8px;opacity:.8">⚠ Semua stasiun & cash reset. Essence permanen menambah multiplier produksi.</p>
+  </div>
+
+  <!-- SHOP -->
+  <div id="shop" class="panel"><h2>🛒 Shop</h2>
+    <div class="card" style="background:linear-gradient(135deg,#FFD700,#FF9800)">
+      <div class="row"><div><h3 style="color:#3E2723">🎁 Starter Pack</h3><p style="color:#5a3a1a">500 💎 + boost x2 (1 jam)</p></div>
+      <button class="btn buy" style="flex:0 0 auto;padding:9px 16px" onclick="buyGems(500,'starter')">$1.99</button></div>
+    </div>
+    <div class="card"><div class="row"><div><h3>💎 100 Gems</h3></div><button class="btn buy" style="flex:0 0 auto;padding:9px 16px" onclick="buyGems(100)">$0.99</button></div></div>
+    <div class="card"><div class="row"><div><h3>💎 550 Gems</h3><span class="badge">+10%</span></div><button class="btn buy" style="flex:0 0 auto;padding:9px 16px" onclick="buyGems(550)">$4.99</button></div></div>
+    <div class="card"><div class="row"><div><h3>💎 1200 Gems</h3><span class="badge best">BEST VALUE</span></div><button class="btn buy" style="flex:0 0 auto;padding:9px 16px" onclick="buyGems(1200)">$9.99</button></div></div>
+    <div class="card"><div class="row"><div><h3>📺 Tonton Iklan</h3><p>Dapat 25 💎 gratis</p></div><button class="btn mgr" style="flex:0 0 auto;padding:9px 16px" onclick="watchAd()">FREE</button></div></div>
+    <p style="font-size:11px;text-align:center;opacity:.7">Demo web — pembelian gratis untuk testing.</p>
+  </div>
+
+  <!-- NAV -->
+  <div id="nav">
+    <button class="navbtn active" data-p="factory"><span class="ic">🏭</span>Factory</button>
+    <button class="navbtn" data-p="manager"><span class="ic">👷</span>Manager</button>
+    <button class="navbtn" data-p="orders"><span class="ic">📦</span>Orders</button>
+    <button class="navbtn" data-p="prestige"><span class="ic">✨</span>Prestige</button>
+    <button class="navbtn" data-p="shop"><span class="ic">🛒</span>Shop</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="overlay"><div id="offlineBox">
+  <h2>⛏️ Selamat datang kembali!</h2>
+  <p>Tambangmu tetap bekerja selama kamu pergi.</p>
+  <div class="amt" id="offlineAmt">+0</div>
+  <button onclick="closeOffline()">KUMPULKAN</button>
+</div></div>
+
+<script>
+"use strict";
+// ===== Config: production chain Mine -> Crusher -> Smelter -> Shipping =====
+const STATIONS = [
+  {id:"mine",    name:"Tambang Emas", emoji:"⛏️",  kind:"mine",     cycle:1.4, out:1, cap:30,  cost:0,    upCost:60,   cashPer:0},
+  {id:"crusher", name:"Crusher",      emoji:"🪨",  kind:"crusher",  cycle:1.8, out:1, cap:25,  cost:250,  upCost:200,  cashPer:0},
+  {id:"smelter", name:"Smelter",      emoji:"🔥",  kind:"smelter",  cycle:2.4, out:1, cap:20,  cost:1500, upCost:900,  cashPer:0},
+  {id:"shipping",name:"Pengiriman",   emoji:"🚚",  kind:"shipping", cycle:2.0, out:1, cap:15,  cost:8000, upCost:3500, cashPer:14},
+];
+const ORDER_KINDS = ["mine","crusher","smelter","shipping"];
+const MANAGERS = [
+  {id:"budi", name:"Pak Budi",  desc:"Veteran penambang. Otomatiskan Tambang.",     target:"mine",    cost:300},
+  {id:"joko", name:"Pak Joko",  desc:"Ahli crusher. Otomatiskan Crusher.",          target:"crusher", cost:2000},
+  {id:"sari", name:"Bu Sari",   desc:"Master peleburan. Otomatiskan Smelter.",      target:"smelter", cost:9000},
+  {id:"agus", name:"Pak Agus",  desc:"Manajer logistik. Otomatiskan Pengiriman.",   target:"shipping",cost:40000},
+];
+const COST_GROWTH=1.16, OUT_GROWTH=1.12, MAX_OFFLINE=8*3600, OFFLINE_EFF=0.5;
+const SAVE_KEY="gmt_save_v1";
+
+// ===== State =====
+let S = newState();
+function newState(){
+  const st={};
+  STATIONS.forEach(d=>st[d.id]={level:d.id==="mine"?1:0, stored:0, prog:0});
+  return {cash:50, gems:0, reputation:0, essence:0, prestige:0, totalEarned:0,
+    stations:st, managers:[], unlockedLayer:1, savedAt:Date.now(),
+    order:null};
+}
+
+// ===== Helpers =====
+const fmt = n=>{
+  n=Math.floor(n);
+  if(n<1000) return ""+n;
+  const u=["","K","M","B","T","Qa","Qi"];let i=0;
+  while(n>=1000&&i<u.length-1){n/=1000;i++;}
+  return n.toFixed(n<10?2:n<100?1:0)+u[i];
+};
+const def = id=>STATIONS.find(s=>s.id===id);
+const prestigeMult = ()=>1+S.essence*0.02;
+const pendingEssence = ()=>Math.floor(Math.sqrt(S.totalEarned/10000));
+function upgradeCost(id){const d=def(id);const lv=S.stations[id].level;return Math.floor(d.upCost*Math.pow(COST_GROWTH,Math.max(0,lv-(id==="mine"?1:0))));}
+function output(id){const d=def(id);const lv=Math.max(1,S.stations[id].level);return d.out*Math.pow(OUT_GROWTH,lv-1)*prestigeMult();}
+function capacity(id){const d=def(id);const lv=Math.max(1,S.stations[id].level);return Math.floor(d.cap+(lv-1)*d.cap/2);}
+function hasManager(id){const m=MANAGERS.find(m=>m.target===id);return m&&S.managers.includes(m.id);}
+function owned(id){return S.stations[id].level>0;}
+
+// ===== Core tick =====
+function advance(id,dt){
+  const s=S.stations[id], d=def(id);
+  if(!owned(id)) return;
+  const cap=capacity(id);
+  if(s.stored>=cap && d.kind!=="shipping") return;
+  s.prog+=dt;
+  while(s.prog>=d.cycle){
+    s.prog-=d.cycle;
+    const yld=Math.max(1,Math.round(output(id)));
+    if(d.kind==="shipping"){
+      // shipping sells immediately if it has input buffered
+      if(s.stored<=0){s.prog=0;break;}
+      const ship=Math.min(yld,s.stored);
+      s.stored-=ship;
+      const earn=ship*d.cashPer*prestigeMult();
+      S.cash+=earn; S.totalEarned+=earn; S.reputation+=ship*0.5;
+      progressOrder("shipping",ship);
+      floatNum(id,"+$"+fmt(earn));
+    }else{
+      const room=cap-s.stored;
+      const add=Math.min(yld,room);
+      s.stored+=add;
+      progressOrder(d.kind,add);
+      pulse(id);
+    }
+  }
+}
+function flow(){
+  move("mine","crusher"); move("crusher","smelter"); move("smelter","shipping");
+}
+function move(from,to){
+  if(!owned(to)) return;
+  const c=S.stations[to], cd=def(to);
+  if(c.stored>=capacity(to)) return;
+  let need=capacity(to)-c.stored;
+  const p=S.stations[from];
+  const take=Math.min(need,p.stored);
+  p.stored-=take; c.stored+=take;
+}
+function tick(dt){
+  STATIONS.forEach(d=>{ if(hasManager(d.id)) advance(d.id,dt); });
+  flow();
+}
+
+// ===== Orders (lightweight reputation goal) =====
+function newOrder(){
+  const kind=ORDER_KINDS[Math.floor(Math.random()*ORDER_KINDS.length)];
+  const goal=10+Math.floor(Math.random()*40)*(S.prestige+1);
+  S.order={kind,goal,have:0,reward:Math.floor(goal*8*prestigeMult())};
+}
+function progressOrder(kind,n){
+  if(!S.order||S.order.kind!==kind) return;
+  S.order.have+=n;
+  if(S.order.have>=S.order.goal){
+    S.gems+=Math.max(2,Math.floor(S.order.goal/15));
+    S.cash+=S.order.reward; S.totalEarned+=S.order.reward; S.reputation+=5;
+    toast("Order selesai! +"+Math.max(2,Math.floor(S.order.goal/15))+"💎 +$"+fmt(S.order.reward));
+    newOrder();
+  }
+}
+
+// ===== Actions =====
+function tapStation(id){
+  if(!owned(id)){ toast("Beli stasiun ini dulu!"); return; }
+  advance(id,def(id).cycle); flow(); render();
+}
+function buyOrUpgrade(id){
+  const s=S.stations[id];
+  if(!owned(id)){
+    const d=def(id);
+    if(S.cash<d.cost){toast("Cash kurang!");return;}
+    S.cash-=d.cost; s.level=1;
+    toast(d.name+" dibeli!");
+  }else{
+    const c=upgradeCost(id);
+    if(S.cash<c){toast("Cash kurang!");return;}
+    S.cash-=c; s.level++;
+  }
+  render();
+}
+function hireManager(mid){
+  const m=MANAGERS.find(x=>x.id===mid);
+  if(S.managers.includes(mid)) return;
+  if(!owned(m.target)){toast("Beli stasiunnya dulu!");return;}
+  if(S.cash<m.cost){toast("Cash kurang!");return;}
+  S.cash-=m.cost; S.managers.push(mid);
+  toast(m.name+" direkrut! Produksi otomatis.");
+  renderManagers(); render();
+}
+function buyGems(n,kind){ S.gems+=n; if(kind==="starter"){toast("Starter Pack! +500💎");} else toast("+"+n+"💎"); render(); }
+function watchAd(){ S.gems+=25; toast("📺 Iklan selesai! +25💎"); render(); }
+function doPrestige(){
+  const e=pendingEssence();
+  if(e<1){toast("Butuh lebih banyak earning untuk prestige!");return;}
+  S.essence+=e; S.prestige++;
+  const keep={essence:S.essence,gems:S.gems,prestige:S.prestige,totalEarned:0,
+    reputation:0,unlockedLayer:1};
+  S=Object.assign(newState(),keep,{cash:50});
+  newOrder();
+  toast("✨ Prestige! +"+e+" essence. Multiplier x"+prestigeMult().toFixed(2));
+  showPanel("factory"); renderManagers(); render();
+}
+
+// ===== Render =====
+function render(){
+  document.getElementById("cash").textContent=fmt(S.cash);
+  document.getElementById("gems").textContent=fmt(S.gems);
+  // order bar
+  if(S.order){
+    const o=S.order, kn=def(o.kind).name;
+    document.getElementById("orderText").textContent=`${o.have}/${o.goal} ${kn}`;
+    document.getElementById("orderFill").style.width=Math.min(100,o.have/o.goal*100)+"%";
+  }
+  renderFactory();
+  if(document.getElementById("prestige").classList.contains("show")) renderPrestige();
+  if(document.getElementById("orders").classList.contains("show")) renderRep();
+}
+function renderFactory(){
+  const f=document.getElementById("factory");
+  let html="";
+  STATIONS.forEach((d,i)=>{
+    const s=S.stations[d.id], own=owned(d.id);
+    const cap=capacity(d.id), pct=Math.min(100,s.stored/cap*100);
+    const auto=hasManager(d.id);
+    const buyLabel = own ? ("⬆ Upgrade $"+fmt(upgradeCost(d.id))) : ("🔓 Beli $"+fmt(d.cost));
+    const buyDis = own ? (S.cash<upgradeCost(d.id)) : (S.cash<d.cost);
+    html+=`<div class="station ${own?'':'locked'}" id="card-${d.id}">
+      <div class="st-head">
+        <div class="st-emoji" id="emoji-${d.id}">${d.emoji}</div>
+        <div class="st-info">
+          <div class="st-name">${d.name}</div>
+          <div class="st-lvl">${own?'Level '+s.level:'Belum dibeli'} ${auto?'· 🤖 AUTO':''}</div>
+          <div class="st-store">${d.kind==='shipping'?'Buffer':'Stok'}: ${Math.floor(s.stored)}/${cap}</div>
+          <div class="storebar"><div class="storefill ${pct>=100?'full':''}" style="width:${pct}%"></div></div>
+        </div>
+      </div>
+      <div class="st-actions">
+        ${own&&!auto?`<button class="btn tap" onclick="tapStation('${d.id}')">⛏ Kerja</button>`:''}
+        <button class="btn buy" onclick="buyOrUpgrade('${d.id}')" ${buyDis?'disabled':''}>${buyLabel}</button>
+      </div>
+    </div>`;
+    if(i<STATIONS.length-1) html+=`<div class="chain-arrow">⬇</div>`;
+  });
+  f.innerHTML=html;
+}
+function renderManagers(){
+  let html="";
+  MANAGERS.forEach(m=>{
+    const hired=S.managers.includes(m.id);
+    html+=`<div class="card"><div class="row">
+      <div style="font-size:30px">👷</div>
+      <div style="flex:1"><h3>${m.name}</h3><p>${m.desc}</p></div>
+    </div>
+    <button class="btn ${hired?'mgr hired':'buy'}" onclick="hireManager('${m.id}')" ${hired?'disabled':''}>
+      ${hired?'✅ Direkrut':'Rekrut $'+fmt(m.cost)}</button></div>`;
+  });
+  document.getElementById("mgrList").innerHTML=html;
+}
+function renderPrestige(){
+  document.getElementById("pTotal").textContent=fmt(S.totalEarned);
+  document.getElementById("pLevel").textContent=S.prestige;
+  document.getElementById("pMultNow").textContent="x"+prestigeMult().toFixed(2);
+  document.getElementById("pEssence").textContent="+"+pendingEssence();
+  document.getElementById("pMultNew").textContent="x"+(1+(S.essence+pendingEssence())*0.02).toFixed(2);
+}
+function renderRep(){
+  document.getElementById("repInfo").innerHTML=
+    `<div class="card"><div class="stat" style="color:#3E2723;background:#fff4d6"><span>⭐ Reputasi</span><span>${fmt(S.reputation)}</span></div>
+     <div class="stat" style="color:#3E2723;background:#fff4d6"><span>✨ Essence</span><span>${fmt(S.essence)}</span></div>
+     <div class="stat" style="color:#3E2723;background:#fff4d6"><span>💰 Total earned</span><span>${fmt(S.totalEarned)}</span></div></div>`;
+}
+
+// ===== FX =====
+function floatNum(id,txt){
+  const card=document.getElementById("card-"+id); if(!card)return;
+  const el=document.createElement("div"); el.className="float"; el.textContent=txt;
+  el.style.left=(20+Math.random()*60)+"%"; el.style.top="20px";
+  card.appendChild(el); setTimeout(()=>el.remove(),1000);
+}
+function pulse(id){
+  const e=document.getElementById("emoji-"+id); if(!e)return;
+  e.classList.add("pulse"); setTimeout(()=>e.classList.remove("pulse"),120);
+}
+let toastT;
+function toast(msg){
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+// ===== Nav =====
+function showPanel(name){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("show",p.id===name));
+  document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.p===name));
+  if(name==="manager")renderManagers();
+  render();
+}
+document.querySelectorAll(".navbtn").forEach(b=>b.onclick=()=>showPanel(b.dataset.p));
+
+// ===== Save / Load / Offline =====
+function save(){ S.savedAt=Date.now(); localStorage.setItem(SAVE_KEY,JSON.stringify(S)); }
+function load(){
+  const raw=localStorage.getItem(SAVE_KEY); if(!raw)return false;
+  try{
+    const d=JSON.parse(raw);
+    S=Object.assign(newState(),d);
+    // ensure all stations exist (forward-compat)
+    STATIONS.forEach(x=>{ if(!S.stations[x.id])S.stations[x.id]={level:0,stored:0,prog:0}; });
+    return true;
+  }catch(e){return false;}
+}
+function resolveOffline(){
+  if(!S.savedAt)return;
+  const secs=Math.min(MAX_OFFLINE,(Date.now()-S.savedAt)/1000);
+  if(secs<60)return;
+  let earn=0;
+  STATIONS.forEach(d=>{
+    if(d.kind!=="shipping"||!hasManager(d.id))return;
+    const cycles=secs/d.cycle;
+    earn+=cycles*output(d.id)*d.cashPer*prestigeMult();
+  });
+  earn=Math.floor(earn*OFFLINE_EFF);
+  if(earn>0){
+    S.cash+=earn; S.totalEarned+=earn;
+    document.getElementById("offlineAmt").textContent="+$"+fmt(earn);
+    document.getElementById("overlay").classList.add("show");
+  }
+}
+function closeOffline(){document.getElementById("overlay").classList.remove("show");}
+
+// ===== Boot =====
+if(!load()) newState();
+if(!S.order) newOrder();
+resolveOffline();
+renderManagers(); render();
+
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(0.25,(now-last)/1000); last=now;
+  tick(dt);
+  // light render throttle
+  render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+setInterval(save,5000);
+window.addEventListener("beforeunload",save);
+document.addEventListener("visibilitychange",()=>{ if(document.hidden)save(); });
+</script>
+</body>
+</html>
